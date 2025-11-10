@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyInventory - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h1>📦 MyInventory</h1>
+                    <p>Welcome back, <span id="userName">User</span>!</p>
+                </div>
+                <div class="header-actions">
+                    <span id="userEmail" class="user-email"></span>
+                    <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Alert Section -->
+        <section id="alertSection" class="alert-section hidden">
+            <h2>⚠️ Low Stock Alerts</h2>
+            <div id="alertsContainer" class="alerts-grid"></div>
+        </section>
+
+        <!-- Controls -->
+        <section class="controls">
+            <button id="addItemBtn" class="btn btn-primary">+ Add New Item</button>
+            <div class="stats">
+                Total Items: <span id="totalItems">0</span> | 
+                Low Stock: <span id="lowStockCount">0</span>
+            </div>
+        </section>
+
+        <!-- Items Table -->
+        <section class="items-section">
+            <h2>Inventory Items</h2>
+            <div class="table-container">
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Min Stock</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsTableBody">
+                        <!-- Items will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Add/Edit Item Modal -->
+    <div id="itemModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Item</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="itemForm">
+                <div class="form-group">
+                    <label for="itemName">Name *</label>
+                    <input type="text" id="itemName" required>
+                </div>
+                <div class="form-group">
+                    <label for="itemDescription">Description</label>
+                    <textarea id="itemDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="itemCategory">Category *</label>
+                    <input type="text" id="itemCategory" list="categories" required>
+                    <datalist id="categories"></datalist>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemQuantity">Quantity *</label>
+                        <input type="number" id="itemQuantity" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemPrice">Price ($) *</label>
+                        <input type="number" id="itemPrice" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemMinStock">Min Stock</label>
+                        <input type="number" id="itemMinStock" min="0">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Item</button>
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

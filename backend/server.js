@@ -1,385 +1,380 @@
-// const express = require('express');
-// const cors = require('cors');
-// const sqlite3 = require('sqlite3').verbose();
-// const path = require('path');
-
-// const app = express();
-// const PORT = 5000;
-
-// // ✅ FIXED CORS - Allow everything
-// app.use(cors());
-// app.use(express.json());
-
-// // ✅ Request logging
-// app.use((req, res, next) => {
-//   console.log(`📍 ${new Date().toLocaleTimeString()} - ${req.method} ${req.path}`);
-//   if (Object.keys(req.body).length > 0) {
-//     console.log('📦 Body:', req.body);
-//   }
-//   next();
-// });
-
-// // Database setup - PERSISTENT FILE
-// const db = new sqlite3.Database('./inventory.db', (err) => {
-//   if (err) {
-//     console.error('❌ Error opening database:', err);
-//   } else {
-//     console.log('✅ Connected to SQLite database: inventory.db');
-//   }
-// });
-
-// // Initialize database - FIXED VERSION
-// db.serialize(() => {
-//   // Create table if it doesn't exist
-//   db.run(`CREATE TABLE IF NOT EXISTS items (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     name TEXT NOT NULL,
-//     description TEXT,
-//     category TEXT NOT NULL,
-//     quantity INTEGER NOT NULL,
-//     price REAL NOT NULL,
-//     min_stock INTEGER DEFAULT 0,
-//     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-//   )`, function(err) {
-//     if (err) {
-//       console.error('❌ Error creating table:', err);
-//     } else {
-//       console.log('✅ Items table ready');
-      
-//       // Check if we need to insert sample data
-//       db.get("SELECT COUNT(*) as count FROM items", (err, row) => {
-//         if (err) {
-//           console.error('Error checking items count:', err);
-//           return;
-//         }
-        
-//         if (row.count === 0) {
-//           console.log('📝 Inserting sample data...');
-//           const sampleItems = [
-//             ['Laptop', 'Gaming Laptop 16GB RAM', 'Electronics', 15, 999.99, 5],
-//             ['Mouse', 'Wireless Optical Mouse', 'Electronics', 45, 25.50, 10],
-//             ['Notebook', 'A4 Size 100 pages', 'Stationery', 8, 4.99, 15]
-//           ];
-
-//           const stmt = db.prepare(`INSERT INTO items (name, description, category, quantity, price, min_stock) VALUES (?, ?, ?, ?, ?, ?)`);
-//           sampleItems.forEach(item => {
-//             stmt.run(item, function(err) {
-//               if (err) {
-//                 console.error('Error inserting sample item:', err);
-//               }
-//             });
-//           });
-//           stmt.finalize();
-//           console.log('✅ Sample data inserted');
-//         } else {
-//           console.log(`📊 Database has ${row.count} existing items`);
-//         }
-//       });
-//     }
-//   });
-// });
-
-// // ✅ GET ALL ITEMS
-// app.get('/api/items', (req, res) => {
-//   console.log('📋 Fetching all items');
-//   db.all('SELECT * FROM items ORDER BY created_at DESC', (err, rows) => {
-//     if (err) {
-//       console.error('❌ Database error:', err);
-//       res.status(500).json({ error: err.message });
-//       return;
-//     }
-//     console.log(`✅ Returning ${rows.length} items`);
-//     res.json(rows);
-//   });
-// });
-
-// // ✅ GET LOW STOCK ITEMS
-// app.get('/api/items/low-stock', (req, res) => {
-//   db.all('SELECT * FROM items WHERE quantity <= min_stock ORDER BY quantity ASC', (err, rows) => {
-//     if (err) {
-//       res.status(500).json({ error: err.message });
-//       return;
-//     }
-//     res.json(rows);
-//   });
-// });
-
-// // ✅ CREATE NEW ITEM - FIXED
-// app.post('/api/items', (req, res) => {
-//   console.log('🎯 CREATE ITEM REQUEST:', req.body);
-  
-//   const { name, description, category, quantity, price, min_stock } = req.body;
-  
-//   // Validation
-//   if (!name || !category || quantity === undefined || price === undefined) {
-//     console.log('❌ Missing fields');
-//     return res.status(400).json({ 
-//       error: 'Missing required fields',
-//       received: req.body
-//     });
-//   }
-
-//   const stmt = db.prepare(`INSERT INTO items (name, description, category, quantity, price, min_stock) VALUES (?, ?, ?, ?, ?, ?)`);
-  
-//   stmt.run([name, description || '', category, quantity, price, min_stock || 0], function(err) {
-//     if (err) {
-//       console.error('❌ Database insert error:', err);
-//       return res.status(500).json({ error: 'Database error: ' + err.message });
-//     }
-    
-//     console.log('✅ Item created successfully, ID:', this.lastID);
-//     res.json({ 
-//       id: this.lastID, 
-//       message: 'Item created successfully',
-//       item: { id: this.lastID, name, description, category, quantity, price, min_stock }
-//     });
-//   });
-  
-//   stmt.finalize();
-// });
-
-// // ✅ UPDATE ITEM
-// app.put('/api/items/:id', (req, res) => {
-//   const id = req.params.id;
-//   const { name, description, category, quantity, price, min_stock } = req.body;
-
-//   const stmt = db.prepare(`UPDATE items SET name=?, description=?, category=?, quantity=?, price=?, min_stock=? WHERE id=?`);
-  
-//   stmt.run([name, description, category, quantity, price, min_stock, id], function(err) {
-//     if (err) {
-//       res.status(500).json({ error: err.message });
-//       return;
-//     }
-//     res.json({ message: 'Item updated successfully' });
-//   });
-//   stmt.finalize();
-// });
-
-// // ✅ DELETE ITEM
-// app.delete('/api/items/:id', (req, res) => {
-//   const id = req.params.id;
-  
-//   db.run('DELETE FROM items WHERE id = ?', [id], function(err) {
-//     if (err) {
-//       res.status(500).json({ error: err.message });
-//       return;
-//     }
-//     res.json({ message: 'Item deleted successfully' });
-//   });
-// });
-
-// // ✅ GET CATEGORIES
-// app.get('/api/categories', (req, res) => {
-//   db.all('SELECT DISTINCT category FROM items ORDER BY category', (err, rows) => {
-//     if (err) {
-//       res.status(500).json({ error: err.message });
-//       return;
-//     }
-//     res.json(rows.map(row => row.category));
-//   });
-// });
-
-// // ✅ HEALTH CHECK
-// app.get('/api/health', (req, res) => {
-//   res.json({ 
-//     status: 'OK', 
-//     timestamp: new Date().toISOString(),
-//     message: 'Backend is running perfectly!'
-//   });
-// });
-
-// // ✅ START SERVER
-// app.listen(PORT, () => {
-//   console.log(`\n🎉 BACKEND SERVER STARTED SUCCESSFULLY!`);
-//   console.log(`📍 Server running on http://localhost:${PORT}`);
-//   console.log(`🔍 Health check: http://localhost:${PORT}/api/health`);
-//   console.log(`📋 Get items: http://localhost:${PORT}/api/items`);
-//   console.log(`\n⚠️  KEEP THIS TERMINAL OPEN AND RUNNING!\n`);
-// });
-
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
-const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ CORS - Smart configuration
-if (process.env.NODE_ENV === 'production') {
-  app.use(cors());
-} else {
-  app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true
-  }));
-}
-
+// Middleware
+app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../frontend')));
 
-// ✅ Request logging
-app.use((req, res, next) => {
-  console.log(`📍 ${new Date().toLocaleTimeString()} - ${req.method} ${req.path}`);
-  next();
+// MongoDB Connection
+const MONGODB_URI = process.env.MONGODB_URI;
+
+mongoose.connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+.then(() => console.log('✅ Connected to MongoDB Atlas!'))
+.catch(err => {
+    console.error('❌ MongoDB connection error:', err);
+    process.exit(1);
 });
 
-// ✅ Database setup - Use file in production, memory in development for testing
-const dbPath = process.env.NODE_ENV === 'production' ? './inventory.db' : ':memory:';
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('❌ Database error:', err);
-  } else {
-    console.log(`✅ Connected to SQLite database: ${dbPath}`);
-  }
+// JWT Secret
+const JWT_SECRET = process.env.JWT_SECRET;
+
+// User Schema
+const userSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+        lowercase: true
+    },
+    password: {
+        type: String,
+        required: true,
+        minlength: 6
+    }
+}, {
+    timestamps: true
 });
 
-// ✅ Initialize database
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    description TEXT,
-    category TEXT NOT NULL,
-    quantity INTEGER NOT NULL,
-    price REAL NOT NULL,
-    min_stock INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`, function(err) {
-    if (err) {
-      console.error('❌ Table creation error:', err);
-    } else {
-      console.log('✅ Items table ready');
-      
-      // Insert sample data if empty
-      db.get("SELECT COUNT(*) as count FROM items", (err, row) => {
-        if (!err && row.count === 0) {
-          console.log('📝 Inserting sample data...');
-          const sampleItems = [
-            ['Laptop', 'Gaming Laptop 16GB RAM', 'Electronics', 15, 999.99, 5],
-            ['Mouse', 'Wireless Optical Mouse', 'Electronics', 45, 25.50, 10],
-            ['Notebook', 'A4 Size 100 pages', 'Stationery', 8, 4.99, 15]
-          ];
+// Hash password before saving
+userSchema.pre('save', async function(next) {
+    if (!this.isModified('password')) return next();
+    this.password = await bcrypt.hash(this.password, 12);
+    next();
+});
 
-          const stmt = db.prepare(`INSERT INTO items (name, description, category, quantity, price, min_stock) VALUES (?, ?, ?, ?, ?, ?)`);
-          sampleItems.forEach(item => stmt.run(item));
-          stmt.finalize();
-          console.log('✅ Sample data inserted');
-        } else {
-          console.log(`📊 Database has ${row?.count || 0} items`);
+// Compare password method
+userSchema.methods.comparePassword = async function(candidatePassword) {
+    return await bcrypt.compare(candidatePassword, this.password);
+};
+
+const User = mongoose.model('User', userSchema);
+
+// Item Schema
+const itemSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    description: {
+        type: String,
+        default: ''
+    },
+    category: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    quantity: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    price: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    min_stock: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    }
+}, {
+    timestamps: true
+});
+
+const Item = mongoose.model('Item', itemSchema);
+
+// Authentication Middleware
+const auth = (req, res, next) => {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+
+    if (!token) {
+        return res.status(401).json({ error: 'No token provided, authorization denied' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.userId = decoded.userId;
+        next();
+    } catch (error) {
+        res.status(401).json({ error: 'Token is not valid' });
+    }
+};
+
+// Auth Routes
+
+// Register
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+
+        // Validation
+        if (!name || !email || !password) {
+            return res.status(400).json({ error: 'All fields are required' });
         }
-      });
+
+        if (password.length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters' });
+        }
+
+        // Check if user exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ error: 'User already exists with this email' });
+        }
+
+        // Create user
+        const user = new User({ name, email, password });
+        await user.save();
+
+        // Generate token
+        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '24h' });
+
+        res.status(201).json({
+            message: 'User registered successfully',
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            }
+        });
+
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ error: 'Server error during registration' });
     }
-  });
 });
 
-// ✅ Serve static files from React build in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/build')));
-  console.log('✅ Serving React build files');
-}
+// Login
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
 
-// ✅ API Routes
-app.get('/api/items', (req, res) => {
-  db.all('SELECT * FROM items ORDER BY created_at DESC', (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+        // Validation
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email and password are required' });
+        }
+
+        // Find user
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ error: 'Invalid email or password' });
+        }
+
+        // Check password
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(400).json({ error: 'Invalid email or password' });
+        }
+
+        // Generate token
+        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '24h' });
+
+        res.json({
+            message: 'Login successful',
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            }
+        });
+
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Server error during login' });
     }
-    res.json(rows);
-  });
 });
 
-app.get('/api/items/low-stock', (req, res) => {
-  db.all('SELECT * FROM items WHERE quantity <= min_stock ORDER BY quantity ASC', (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+// Get current user
+app.get('/api/auth/me', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId).select('-password');
+        res.json({ user });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
     }
-    res.json(rows);
-  });
 });
 
-app.post('/api/items', (req, res) => {
-  const { name, description, category, quantity, price, min_stock } = req.body;
-  
-  if (!name || !category || quantity === undefined || price === undefined) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
+// Item Routes (Protected)
 
-  const stmt = db.prepare(`INSERT INTO items (name, description, category, quantity, price, min_stock) VALUES (?, ?, ?, ?, ?, ?)`);
-  
-  stmt.run([name, description || '', category, quantity, price, min_stock || 0], function(err) {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+// Get all items for user
+app.get('/api/items', auth, async (req, res) => {
+    try {
+        const items = await Item.find({ user: req.userId }).sort({ createdAt: -1 });
+        res.json(items);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-    res.json({ id: this.lastID, message: 'Item created successfully' });
-  });
-  stmt.finalize();
 });
 
-app.put('/api/items/:id', (req, res) => {
-  const id = req.params.id;
-  const { name, description, category, quantity, price, min_stock } = req.body;
-
-  const stmt = db.prepare(`UPDATE items SET name=?, description=?, category=?, quantity=?, price=?, min_stock=? WHERE id=?`);
-  
-  stmt.run([name, description, category, quantity, price, min_stock, id], function(err) {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+// Get categories for user
+app.get('/api/categories', auth, async (req, res) => {
+    try {
+        const categories = await Item.distinct('category', { user: req.userId });
+        res.json(categories.sort());
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-    res.json({ message: 'Item updated successfully' });
-  });
-  stmt.finalize();
 });
 
-app.delete('/api/items/:id', (req, res) => {
-  const id = req.params.id;
-  
-  db.run('DELETE FROM items WHERE id = ?', [id], function(err) {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+// Get single item
+app.get('/api/items/:id', auth, async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ error: 'Invalid item ID' });
+        }
+
+        const item = await Item.findOne({ _id: req.params.id, user: req.userId });
+        if (!item) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+        res.json(item);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-    res.json({ message: 'Item deleted successfully' });
-  });
 });
 
-app.get('/api/categories', (req, res) => {
-  db.all('SELECT DISTINCT category FROM items ORDER BY category', (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+// Create new item
+app.post('/api/items', auth, async (req, res) => {
+    try {
+        const { name, description, category, quantity, price, min_stock } = req.body;
+
+        // Validation
+        if (!name || !category || quantity === undefined || price === undefined) {
+            return res.status(400).json({ error: 'Missing required fields: name, category, quantity, price' });
+        }
+
+        const item = new Item({
+            name: name.trim(),
+            description: description?.trim() || '',
+            category: category.trim(),
+            quantity: parseInt(quantity),
+            price: parseFloat(price),
+            min_stock: parseInt(min_stock) || 0,
+            user: req.userId
+        });
+
+        await item.save();
+        res.status(201).json({ 
+            message: 'Item created successfully',
+            item: item
+        });
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ error: error.message });
+        }
+        res.status(500).json({ error: error.message });
     }
-    res.json(rows.map(row => row.category));
-  });
 });
 
+// Update item
+app.put('/api/items/:id', auth, async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ error: 'Invalid item ID' });
+        }
+
+        const { name, description, category, quantity, price, min_stock } = req.body;
+
+        // Validation
+        if (!name || !category || quantity === undefined || price === undefined) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const item = await Item.findOneAndUpdate(
+            { _id: req.params.id, user: req.userId },
+            {
+                name: name.trim(),
+                description: description?.trim() || '',
+                category: category.trim(),
+                quantity: parseInt(quantity),
+                price: parseFloat(price),
+                min_stock: parseInt(min_stock) || 0
+            },
+            { new: true, runValidators: true }
+        );
+
+        if (!item) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+
+        res.json({ 
+            message: 'Item updated successfully',
+            item: item
+        });
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ error: error.message });
+        }
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete item
+app.delete('/api/items/:id', auth, async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ error: 'Invalid item ID' });
+        }
+
+        const item = await Item.findOneAndDelete({ _id: req.params.id, user: req.userId });
+        if (!item) {
+            return res.status(404).json({ error: 'Item not found' });
+        }
+
+        res.json({ message: 'Item deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Health check
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString() 
-  });
+    res.json({ 
+        status: 'OK', 
+        database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
+        timestamp: new Date().toISOString()
+    });
 });
 
-// ✅ Catch all handler - MUST BE LAST
-if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
-  });
-}
+// Serve frontend for all routes
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/index.html'));
+});
 
-// ✅ Start server
+// Start server
 app.listen(PORT, () => {
-  console.log(`\n🎉 INVENTORY MANAGER SERVER STARTED!`);
-  console.log(`📍 Port: ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health: http://localhost:${PORT}/api/health`);
-  console.log(`📊 API: http://localhost:${PORT}/api/items`);
-  if (process.env.NODE_ENV === 'production') {
-    console.log(`🚀 Frontend: Serving from React build`);
-  }
-  console.log(`\n⚠️  Server is ready!`);
+    console.log(`\n🎉 MyInventory Server Started!`);
+    console.log(`📍 Port: ${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔐 Authentication: Enabled`);
+    console.log(`🚀 Frontend: http://localhost:${PORT}`);
+    console.log(`\n✅ Server is ready!`);
 });
