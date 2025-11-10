@@ -5,12 +5,25 @@ class MyInventory {
             : '/api';
         
         this.currentEditingId = null;
-        this.init();
+        
+        // Wait for DOM to be fully loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.init());
+        } else {
+            this.init();
+        }
     }
 
     init() {
         // Check if we're on dashboard page
         if (!document.getElementById('itemsTableBody')) {
+            return;
+        }
+
+        // Check if Auth class is available
+        if (typeof Auth === 'undefined') {
+            console.error('Auth class not found. Make sure auth.js is loaded before script.js');
+            this.showError('Authentication system not loaded. Please refresh the page.');
             return;
         }
 
@@ -345,5 +358,7 @@ class MyInventory {
     }
 }
 
-// Initialize the application
-const inventory = new MyInventory();
+// Initialize the application only if on dashboard page
+if (document.getElementById('itemsTableBody')) {
+    const inventory = new MyInventory();
+}

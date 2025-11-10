@@ -20,8 +20,15 @@ class AuthManager {
         });
 
         // Form submissions
-        document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
-        document.getElementById('registerForm').addEventListener('submit', (e) => this.handleRegister(e));
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+        }
+        if (registerForm) {
+            registerForm.addEventListener('submit', (e) => this.handleRegister(e));
+        }
     }
 
     switchTab(tab) {
@@ -120,14 +127,17 @@ class AuthManager {
 
     checkAuthStatus() {
         const token = localStorage.getItem('token');
-        if (token && window.location.pathname.endsWith('index.html')) {
+        // Only redirect if we're on the login page and logged in
+        if (token && (window.location.pathname.endsWith('index.html') || window.location.pathname === '/')) {
             window.location.href = 'dashboard.html';
         }
     }
 
     showMessage(element, message, type) {
-        element.textContent = message;
-        element.className = `message ${type}`;
+        if (element) {
+            element.textContent = message;
+            element.className = `message ${type}`;
+        }
     }
 }
 
@@ -161,5 +171,7 @@ class Auth {
     }
 }
 
-// Initialize auth manager
-const authManager = new AuthManager();
+// Initialize auth manager only on login page
+if (document.getElementById('loginForm') || document.getElementById('registerForm')) {
+    const authManager = new AuthManager();
+}
