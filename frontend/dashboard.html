@@ -16,6 +16,7 @@
                 </div>
                 <div class="header-actions">
                     <span id="userEmail" class="user-email"></span>
+                    <button id="viewOrdersBtn" class="btn btn-primary">View Orders</button>
                     <button id="logoutBtn" class="btn btn-secondary">Logout</button>
                 </div>
             </div>
@@ -23,43 +24,68 @@
     </header>
 
     <div class="container">
-        <!-- Alert Section -->
-        <section id="alertSection" class="alert-section hidden">
-            <h2>⚠️ Low Stock Alerts</h2>
-            <div id="alertsContainer" class="alerts-grid"></div>
-        </section>
+        <!-- Tabs Navigation -->
+        <div class="tabs">
+            <button id="inventoryTab" class="tab-btn active">📦 Inventory Management</button>
+            <button id="ordersTab" class="tab-btn">📋 Customer Orders</button>
+        </div>
 
-        <!-- Controls -->
-        <section class="controls">
-            <button id="addItemBtn" class="btn btn-primary">+ Add New Item</button>
-            <div class="stats">
-                Total Items: <span id="totalItems">0</span> | 
-                Low Stock: <span id="lowStockCount">0</span>
-            </div>
-        </section>
+        <!-- Inventory Section (Default) -->
+        <div id="inventorySection">
+            <!-- Alert Section -->
+            <section id="alertSection" class="alert-section hidden">
+                <h2>⚠️ Low Stock Alerts</h2>
+                <div id="alertsContainer" class="alerts-grid"></div>
+            </section>
 
-        <!-- Items Table -->
-        <section class="items-section">
-            <h2>Inventory Items</h2>
-            <div class="table-container">
-                <table class="items-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Category</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Min Stock</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="itemsTableBody">
-                        <!-- Items will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+            <!-- Controls -->
+            <section class="controls">
+                <button id="addItemBtn" class="btn btn-primary">+ Add New Item</button>
+                <div class="stats">
+                    Total Items: <span id="totalItems">0</span> | 
+                    Low Stock: <span id="lowStockCount">0</span>
+                </div>
+            </section>
+
+            <!-- Items Table -->
+            <section class="items-section">
+                <h2>Inventory Items</h2>
+                <div class="table-container">
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Min Stock</th>
+                                <th>Status</th>
+                                <th>Available</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody">
+                            <!-- Items will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- Orders Section -->
+        <div id="ordersSection" class="hidden">
+            <section class="orders-section">
+                <div class="orders-header">
+                    <h2>📋 Customer Orders</h2>
+                    <div class="orders-stats">
+                        Total Orders: <span id="totalOrders">0</span>
+                    </div>
+                </div>
+                <div id="ordersContainer" class="orders-container">
+                    <!-- Orders will be loaded here -->
+                </div>
+            </section>
+        </div>
     </div>
 
     <!-- Add/Edit Item Modal -->
@@ -89,7 +115,7 @@
                         <input type="number" id="itemQuantity" min="0" required>
                     </div>
                     <div class="form-group">
-                        <label for="itemPrice">Price ($) *</label>
+                        <label for="itemPrice">Price (₹) *</label>
                         <input type="number" id="itemPrice" step="0.01" min="0" required>
                     </div>
                     <div class="form-group">
@@ -102,6 +128,19 @@
                     <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="orderModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="orderModalTitle">Order Details</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div id="orderDetails" class="order-details">
+                <!-- Order details will be loaded here -->
+            </div>
         </div>
     </div>
 

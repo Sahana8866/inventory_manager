@@ -6,7 +6,10 @@ class AuthManager {
 
     init() {
         this.bindEvents();
-        this.checkAuthStatus();
+        // Don't auto-check auth status on login page
+        if (!window.location.pathname.includes('index.html') && window.location.pathname !== '/') {
+            this.checkAuthStatus();
+        }
     }
 
     bindEvents() {
@@ -69,9 +72,13 @@ class AuthManager {
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
             
-            // Redirect to dashboard
+            // Redirect to appropriate page based on role
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
+                if (data.user.role === 'admin') {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    window.location.href = 'customer.html';
+                }
             }, 1000);
 
         } catch (error) {
@@ -87,6 +94,7 @@ class AuthManager {
         const email = document.getElementById('registerEmail').value;
         const password = document.getElementById('registerPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
+        const role = document.getElementById('registerRole').value;
 
         // Validate passwords match
         if (password !== confirmPassword) {
@@ -100,7 +108,7 @@ class AuthManager {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ name, email, password })
+                body: JSON.stringify({ name, email, password, role })
             });
 
             const data = await response.json();
@@ -125,9 +133,29 @@ class AuthManager {
 
     checkAuthStatus() {
         const token = localStorage.getItem('token');
-        // Only redirect if we're on the login page and logged in
-        if (token && (window.location.pathname.endsWith('index.html') || window.location.pathname === '/')) {
-            window.location.href = 'dashboard.html';
+        const user = Auth.getUser();
+        const currentPage = window.location.pathname;
+        
+        console.log('Auth check:', { token, user, currentPage });
+        
+        if (token && user) {
+            // User is logged in
+            if (currentPage.endsWith('index.html') || currentPage === '/' || currentPage === '') {
+                // Redirect away from login page
+                if (user.role === 'admin') {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    window.location.href = 'customer.html';
+                }
+            }
+            // If already on correct page, do nothing
+        } else {
+            // User is NOT logged in
+            if (currentPage.includes('dashboard.html') || currentPage.includes('customer.html')) {
+                // Redirect to login if trying to access protected pages
+                window.location.href = 'index.html';
+            }
+            // If already on login page, do nothing
         }
     }
 
@@ -135,6 +163,14 @@ class AuthManager {
         if (element) {
             element.textContent = message;
             element.className = `message ${type}`;
+            element.style.display = 'block';
+            
+            // Auto-hide success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, 3000);
+            }
         }
     }
 }
@@ -167,9 +203,61 @@ class Auth {
         }
         return true;
     }
+
+    static async makeAuthenticatedRequest(url, options = {}) {
+        const token = this.getToken();
+        
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token && { 'Authorization': `Bearer ${token}` })
+            },
+            ...options
+        };
+
+        try {
+            const response = await fetch(url, config);
+            
+            if (response.status === 401) {
+                this.logout();
+                throw new Error('Session expired. Please login again.');
+            }
+            
+            return response;
+        } catch (error) {
+            console.error('Request failed:', error);
+            throw error;
+        }
+    }
 }
 
 // Initialize auth manager only on login page
 if (document.getElementById('loginForm') || document.getElementById('registerForm')) {
     const authManager = new AuthManager();
 }
+
+// Check auth status on all pages EXCEPT login page
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPage = window.location.pathname;
+    
+    // Only run auth check on protected pages (not login page)
+    if (!currentPage.endsWith('index.html') && currentPage !== '/' && currentPage !== '') {
+        if (typeof Auth !== 'undefined') {
+            // Simple check - if not logged in, redirect to login
+            if (!Auth.isLoggedIn()) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // If logged in, verify we're on the correct page based on role
+            const user = Auth.getUser();
+            if (user) {
+                if (user.role === 'admin' && currentPage.includes('customer.html')) {
+                    window.location.href = 'dashboard.html';
+                } else if (user.role === 'customer' && currentPage.includes('dashboard.html')) {
+                    window.location.href = 'customer.html';
+                }
+            }
+        }
+    }
+});
