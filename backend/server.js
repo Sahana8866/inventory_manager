@@ -581,6 +581,7 @@ app.post('/api/orders', auth, async (req, res) => {
 });
 
 // Get customer's orders
+// Get customer's orders - FIXED VERSION
 app.get('/api/orders/my-orders', auth, async (req, res) => {
     try {
         const user = await User.findById(req.userId);
@@ -590,16 +591,18 @@ app.get('/api/orders/my-orders', auth, async (req, res) => {
         }
 
         const orders = await Order.find({ customer: req.userId })
+            .populate('customer', 'name email') // Add this line to populate customer
             .populate('items.item', 'name category')
             .sort({ createdAt: -1 });
 
         res.json(orders);
     } catch (error) {
+        console.error('Error fetching customer orders:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
-// Get all orders (Admin only - for order management)
+// Get all orders (Admin only) - FIXED VERSION
 app.get('/api/orders', adminAuth, async (req, res) => {
     try {
         // Get orders for items belonging to this admin
@@ -609,12 +612,13 @@ app.get('/api/orders', adminAuth, async (req, res) => {
         const orders = await Order.find({
             'items.item': { $in: itemIds }
         })
-        .populate('customer', 'name email')
-        .populate('items.item', 'name category price')
+        .populate('customer', 'name email') // Ensure customer is populated
+        .populate('items.item', 'name category price user')
         .sort({ createdAt: -1 });
 
         res.json(orders);
     } catch (error) {
+        console.error('Error fetching admin orders:', error);
         res.status(500).json({ error: error.message });
     }
 });

@@ -30,33 +30,33 @@ class CustomerApp {
     }
 
     bindEvents() {
-        // Navigation
-        document.getElementById('viewOrdersBtn').addEventListener('click', () => this.showOrders());
-        document.getElementById('logoutBtn').addEventListener('click', () => Auth.logout());
-        
-        // Cart
-        document.getElementById('viewCartBtn').addEventListener('click', () => this.showCart());
-        document.getElementById('clearCartBtn').addEventListener('click', () => this.clearCart());
-        document.getElementById('placeOrderBtn').addEventListener('click', () => this.placeOrder());
-        
-        // Search and filter
-        document.getElementById('searchInput').addEventListener('input', () => this.filterProducts());
-        document.getElementById('categoryFilter').addEventListener('change', () => this.filterProducts());
-        
-        // Modal close buttons
-        document.querySelectorAll('.close').forEach(closeBtn => {
-            closeBtn.addEventListener('click', (e) => {
-                e.target.closest('.modal').classList.add('hidden');
-            });
+    // Navigation
+    document.getElementById('viewOrdersBtn').addEventListener('click', () => this.showOrders());
+    document.getElementById('logoutBtn').addEventListener('click', () => Auth.logout());
+    
+    // Cart
+    document.getElementById('viewCartBtn').addEventListener('click', () => this.showCart());
+    document.getElementById('clearCartBtn').addEventListener('click', () => this.clearCart());
+    document.getElementById('placeOrderBtn').addEventListener('click', () => this.placeOrder());
+    
+    // Search and filter
+    document.getElementById('searchInput').addEventListener('input', () => this.filterProducts());
+    document.getElementById('categoryFilter').addEventListener('change', () => this.filterProducts());
+    
+    // Modal close buttons
+    document.querySelectorAll('.close').forEach(closeBtn => {
+        closeBtn.addEventListener('click', (e) => {
+            e.target.closest('.modal').classList.add('hidden');
         });
-        
-        // Click outside modal to close
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.classList.add('hidden');
-            });
+    });
+    
+    // Click outside modal to close
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.add('hidden');
         });
-    }
+    });
+}
 
     loadUserInfo() {
         const user = Auth.getUser();
@@ -369,25 +369,35 @@ class CustomerApp {
     }
 
     async showOrders() {
-        try {
-            const response = await Auth.makeAuthenticatedRequest(`${this.API_BASE}/orders/my-orders`);
-            const orders = await response.json();
-            this.renderOrders(orders);
-            document.getElementById('ordersModal').classList.remove('hidden');
-        } catch (error) {
-            this.showError('Failed to load orders: ' + error.message);
+    try {
+        const response = await Auth.makeAuthenticatedRequest(`${this.API_BASE}/orders/my-orders`);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to load orders: ${response.status}`);
         }
+        
+        const orders = await response.json();
+        this.renderOrders(orders);
+        document.getElementById('ordersModal').classList.remove('hidden');
+    } catch (error) {
+        this.showError('Failed to load orders: ' + error.message);
+    }
+}
+
+renderOrders(orders) {
+    const ordersList = document.getElementById('ordersList');
+
+    if (!orders || orders.length === 0) {
+        ordersList.innerHTML = '<p class="no-orders">You have no orders yet.</p>';
+        return;
     }
 
-    renderOrders(orders) {
-        const ordersList = document.getElementById('ordersList');
-
-        if (!orders || orders.length === 0) {
-            ordersList.innerHTML = '<p class="no-orders">You have no orders yet.</p>';
-            return;
-        }
-
-        ordersList.innerHTML = orders.map(order => `
+    ordersList.innerHTML = orders.map(order => {
+        // Safe handling of potentially missing data
+        const customerName = order.customer?.name || 'Unknown Customer';
+        const customerEmail = order.customer?.email || '';
+        
+        return `
             <div class="order-card ${order.status}">
                 <div class="order-header">
                     <h4>Order #${order.order_number}</h4>
@@ -395,22 +405,23 @@ class CustomerApp {
                 </div>
                 <div class="order-details">
                     <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}</p>
-                    <p><strong>Total:</strong> ₹${order.total_amount.toFixed(2)}</p>
+                    <p><strong>Total:</strong> ₹${order.total_amount?.toFixed(2) || '0.00'}</p>
                     <p><strong>Items:</strong></p>
                     <ul class="order-items">
-                        ${order.items.map(item => `
-                            <li>${item.item.name} - ${item.quantity} × ₹${item.price.toFixed(2)}</li>
-                        `).join('')}
+                        ${order.items?.map(item => `
+                            <li>${item.item?.name || 'Unknown Item'} - ${item.quantity} × ₹${item.price?.toFixed(2) || '0.00'}</li>
+                        `).join('') || '<li>No items</li>'}
                     </ul>
                     <p><strong>Shipping Address:</strong></p>
-                    <p>${order.shipping_address.name}<br>
-                       ${order.shipping_address.address}<br>
-                       ${order.shipping_address.city}, ${order.shipping_address.state} - ${order.shipping_address.pincode}<br>
-                       Phone: ${order.shipping_address.phone}</p>
+                    <p>${order.shipping_address?.name || 'N/A'}<br>
+                       ${order.shipping_address?.address || 'N/A'}<br>
+                       ${order.shipping_address?.city || 'N/A'}, ${order.shipping_address?.state || 'N/A'} - ${order.shipping_address?.pincode || 'N/A'}<br>
+                       Phone: ${order.shipping_address?.phone || 'N/A'}</p>
                 </div>
             </div>
-        `).join('');
-    }
+        `;
+    }).join('');
+}
 
     updateCartDisplay() {
         document.getElementById('cartCount').textContent = this.cart.reduce((total, item) => total + item.cartQuantity, 0);
