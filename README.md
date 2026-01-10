@@ -1,4 +1,4 @@
-Inventory Management System
+<h1>Inventory Management System</h1>
 A modern, full-stack inventory management system built with Node.js, Express, MongoDB, and vanilla JavaScript featuring role-based access control for small to medium businesses.
 
 Overview
