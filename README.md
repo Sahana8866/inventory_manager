@@ -17,44 +17,55 @@ Secure authentication using JWT tokens
 Password hashing with bcryptjs
 
 <h2>Admin Portal</h2>
-Complete inventory control (CRUD operations)
-Real-time order management and status updates
-Visual low stock alerts and warnings
-Analytics dashboard with statistics
-Category-based product organization
+<ul>
+<li>Complete inventory control (CRUD operations)</li>
+<li>Real-time order management and status updates</li>
+<li>Visual low stock alerts and warnings</li>
+<li>Analytics dashboard with statistics</li>
+<li>Category-based product organization</li>
+</ul>
 
 <h2>Customer Portal</h2>
-Product catalog with search and filter functionality
-Interactive shopping cart with quantity management
-Order placement with shipping details
-Order history and status tracking
-Product details modal with descriptions
+<ul>
+<li>Product catalog with search and filter functionality</li>
+<li>Interactive shopping cart with quantity management</li>
+<li>Order placement with shipping details</li>
+<li>Order history and status tracking</li>
+<li>Product details modal with descriptions</li>
+</ul>
 
 <h2>Real-Time Updates</h2>
-Automatic stock level updates
-Low inventory alerts
-Order status tracking
+<ul>
+</i>Automatic stock level updates</li>
+</i>Low inventory alerts</li>
+</i>Order status tracking</li>
+</ul>
 
 Unified database ensuring data consistency
 
 <h2>Tech Stack</h2>
 <h3>Frontend</h3>
-HTML - Semantic markup and structure
-CSS - Responsive design and styling
-JavaScript - Client-side interactivity
-Fetch API - HTTP requests to backend
+<ul>
+<li>HTML - Semantic markup and structure</li>
+<li>CSS - Responsive design and styling</li>
+<li>JavaScript - Client-side interactivity</li>
+<li>Fetch API - HTTP requests to backend</li>
+</ul>
 
 <h3>Backend</h3>
-Node.js - Runtime environment
-Express.js - Web application framework
-MongoDB - NoSQL database
-Mongoose - MongoDB object modeling
-
+<ul>
+<li>Node.js - Runtime environment</li>
+<li>Express.js - Web application framework</li>
+<li>MongoDB - NoSQL database</li>
+<li>Mongoose - MongoDB object modeling</li>
+</ul>ul>
 
 <h2>Deployment & Infrastructure</h2>
-Render - Cloud deployment platform
-MongoDB Atlas - Cloud database service
-GitHub - Version control and code hosting
+<ul>
+<li>Render - Cloud deployment platform</li>
+<li>MongoDB Atlas - Cloud database service</li>
+<li>GitHub - Version control and code hosting</li>
+</ul>
 
 <h2>Live Deployment</h2>
 The application is deployed on Render with automatic deployment from GitHub:
