@@ -4,9 +4,9 @@ A modern, full-stack inventory management system built with Node.js, Express, Mo
 <h2>Overview</h2>
 Traditional inventory management systems often lack proper role-based access control, making it difficult to separate administrative functions from customer-facing operations. This project provides a simple, cost-effective solution that allows:
 
-Admins to manage inventory, track stock levels, and process orders
-Customers to browse products, place orders, and track shipments
-Real-time inventory updates with low stock alerts
+Admins to manage inventory, track stock levels, and process orders                                                                                                                                                   
+Customers to browse products, place orders, and track shipments                                                                                                                                                      
+Real-time inventory updates with low stock alerts                                                                                                                                                                    
 
 <h2>Key Features</h2>
 Role-Based Access Control
