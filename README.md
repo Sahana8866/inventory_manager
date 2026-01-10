@@ -11,10 +11,12 @@ Traditional inventory management systems often lack proper role-based access con
 </ul>
 
 <h2>Key Features</h2>
-Role-Based Access Control
-Separate portals for administrators and customers
-Secure authentication using JWT tokens
-Password hashing with bcryptjs
+<ul>
+<li>Role-Based Access Control</li>
+<li>Separate portals for administrators and customers</li>
+<li>Secure authentication using JWT tokens</li>
+<li>Password hashing with bcryptjs</li>
+</ul>
 
 <h2>Admin Portal</h2>
 <ul>
@@ -36,9 +38,9 @@ Password hashing with bcryptjs
 
 <h2>Real-Time Updates</h2>
 <ul>
-</i>Automatic stock level updates</li>
-</i>Low inventory alerts</li>
-</i>Order status tracking</li>
+<li>Automatic stock level updates</li>
+<li>Low inventory alerts</li>
+<li>Order status tracking</li>
 </ul>
 
 Unified database ensuring data consistency
@@ -58,7 +60,7 @@ Unified database ensuring data consistency
 <li>Express.js - Web application framework</li>
 <li>MongoDB - NoSQL database</li>
 <li>Mongoose - MongoDB object modeling</li>
-</ul>ul>
+</ul>
 
 <h2>Deployment & Infrastructure</h2>
 <ul>
